@@ -1,0 +1,10 @@
+ 
+Arduino
+ - Motor control
+ - Collision avoidance
+ - Motor control from i2c
+ 
+Raspberry Pi
+ - What technologies to use for controlling the robot via web UI
+ - Web server
+ - receive command from web page and send to robot

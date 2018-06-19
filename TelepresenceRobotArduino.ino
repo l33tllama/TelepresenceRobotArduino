@@ -1,6 +1,10 @@
 #include <Wire.h>
-
+#include <NewPing.h>
 #define SLAVE_ADDRESS 0x04
+#define E1 5
+#define M1 4
+#define E2 6
+#define M2 7
 int number = 0;
 int state = 0;
 
@@ -16,11 +20,15 @@ enum MOTOR_CODES {
   RIGHT_STOP
 };
 
+NewPing sonar(12, 11, 200);
+
 short left_motor_state;
 short right_motor_state;
 short control_state;
 int last_left_state;
 int last_right_state;
+unsigned int m1speed = 255;
+unsigned int m2speed = 255
 
 void setup() {
   pinMode(13, OUTPUT);
@@ -35,6 +43,7 @@ void setup() {
   control_state = READY;
   last_left_state = -1;
   last_right_state = -1;
+  randomSeed(analogRead(0));
   
   Serial.println("Ready!");
 
@@ -90,18 +99,24 @@ void powerMotor(){
   if(control_state == READY){
     switch(left_motor_state){
       case LEFT_FWD:
+        M1FWD();
         break;
       case LEFT_BACK:
+        M1BACK();
         break;
       case LEFT_STOP:
+        M1STOP();
         break;
     }
     switch(right_motor_state){
       case RIGHT_FWD:
+        M2FWD();
         break;
       case RIGHT_BACK:
+        M2BACK();
         break;
       case RIGHT_STOP:
+        M2STOP();
         break;
     }
   }
@@ -118,8 +133,70 @@ void checkLastCommand(){
   }
 }
 
+inline void setM1Speed(int spd){
+  m1pseed = (int)((float)spd / 100.0f) * 255;
+  
+}
+
+inline void setM2Speed(int spd){
+  m2pseed = (int)((float)spd / 100.0f) * 255;
+}
+
+inline void M1FWD(){
+  digitalWrite(M1, LOW);
+  analogWrite(E1, m1speed);
+}
+inline void M1BACK(){
+  digitalWrite(M1, HIGH);
+  analogWrite(E1, m1speed);
+}
+inline void M1STOP(){
+  digitalWrite(M1, LOW);
+  digitalWrite(E1, LOW);
+}
+inline void M2FWD(){
+  digitalWrite(M2, LOW);
+  analogWrite(E2, m2speed);
+}
+inline void M2BACK(){
+  digitalWrite(M2, HIGH);
+  analogWrite(E2, m2pseed);
+}
+inline void M2STOP(){
+  digitalWrite(M2, LOW);
+  digitalWrite(E2, LOW);
+}
+
 void obstacleAvoid(){
   // TODO
+  unsigned int cm = sonar.ping_cm();
+  if(cm < 10){
+    setM1Speed(25);
+    setM1Speed(25);
+    delay(100);
+    M1STOP();
+    M2STOP();
+    delay(100);
+    setM1Speed(100);
+    setM2Speed(100);
+    M1BACK();
+    M2BACK();
+    delay(1500);
+    M1STOP();
+    M2STOP();
+    delay(100);
+    int fwdorback = random(10);
+    if(fwdorback < 5){
+      M1FWD();
+      M2BACK();  
+    } else {
+      M1BACK();
+      M2FWD();
+    }
+    delay(500);
+    
+  }
+  
 }
 
 // callback for sending data
