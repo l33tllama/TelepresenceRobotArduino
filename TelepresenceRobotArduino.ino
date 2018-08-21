@@ -11,6 +11,20 @@ int state = 0;
 enum CONTROL_STATE {
   READY, BUSY 
 };
+/*
+ * 0bxx01 - 1 - RIGHT FWD
+ * 0bxx10 - 2 - RIGHT BACK
+ * 0bxx00 - 3 - RIGHT STOP
+ * 0b01xx - 4 - LEFT FWD
+ * 0b10xx - 5 - LEFT BACK
+ * 0b00xx - 6 - LEFT STOP
+ */
+
+#define B_RIGHT_FWD   0b01
+#define B_RIGHT_BACK  0b10
+#define B_LEFT_FWD  0b1000
+#define B_LEFT_BACK 0b0100
+
 enum MOTOR_CODES {
   LEFT_FWD,
   LEFT_BACK,
@@ -22,13 +36,13 @@ enum MOTOR_CODES {
 
 NewPing sonar(12, 11, 200);
 
-short left_motor_state;
-short right_motor_state;
+short left_motor_state = 2;
+short right_motor_state = 5;
 short control_state;
-int last_left_state;
-int last_right_state;
+int last_left_state = 2;
+int last_right_state = 4;
 unsigned int m1speed = 255;
-unsigned int m2speed = 255
+unsigned int m2speed = 255;
 
 void setup() {
   pinMode(13, OUTPUT);
@@ -64,27 +78,55 @@ void receiveData(int byteCount){
     Serial.println(number);
 
     // ready to take motor controls
-    if(control_state == READY){
-      if (number > 0 && number < 3){
-        left_motor_state = number;
-      }
-      if(number > 3 && number < 7){
-        right_motor_state = number;
-      }
-    // save last motor state when not busy        
-    } else if (control_state == BUSY){
-      if(number > 0 && number < 3) {
-        last_left_state = number;  
-      } else if (number >= 3 && number < 7){
-        last_right_state = number;
+    if(number & B_LEFT_FWD == B_LEFT_FWD){
+      if(control_state == READY){
+        left_motor_state = LEFT_FWD;  
+      } else {
+        last_left_state = LEFT_FWD;
       }
     }
-    
+    if(number & B_LEFT_BACK == B_LEFT_BACK){
+      if(control_state == READY){
+        left_motor_state = LEFT_BACK;  
+      } else {
+        last_left_state = LEFT_BACK;
+      }
+    }
+    if((((number >> 2) & 3) | 0) == 0){
+      if(control_state == READY){
+        left_motor_state = LEFT_STOP;  
+      } else {
+        last_left_state = LEFT_STOP;
+      }
+    }
+    if(number & B_RIGHT_FWD == B_RIGHT_FWD){
+      if(control_state == READY){
+        right_motor_state = RIGHT_FWD;  
+      } else {
+        last_right_state = RIGHT_FWD;
+      }
+    }
+    if(number & B_RIGHT_BACK == B_RIGHT_BACK){
+      if(control_state == READY){
+        right_motor_state = RIGHT_BACK;  
+      } else {
+        last_right_state = RIGHT_BACK;
+      }
+      
+    }
+    if((number & 3 ) | 0 == 0){
+      if(control_state == READY){
+        right_motor_state = RIGHT_STOP;  
+      } else {
+        last_right_state = RIGHT_STOP;
+      }
+    }
+        
     if (number == 1){
       
       if (state == 0){
-      digitalWrite(13, HIGH); // set the LED on
-      state = 1;
+        digitalWrite(13, HIGH); // set the LED on
+        state = 1;
       }
       else{
         digitalWrite(13, LOW); // set the LED off
@@ -134,12 +176,12 @@ void checkLastCommand(){
 }
 
 inline void setM1Speed(int spd){
-  m1pseed = (int)((float)spd / 100.0f) * 255;
+  m1speed = (int)((float)spd / 100.0f) * 255;
   
 }
 
 inline void setM2Speed(int spd){
-  m2pseed = (int)((float)spd / 100.0f) * 255;
+  m2speed = (int)((float)spd / 100.0f) * 255;
 }
 
 inline void M1FWD(){
@@ -160,7 +202,7 @@ inline void M2FWD(){
 }
 inline void M2BACK(){
   digitalWrite(M2, HIGH);
-  analogWrite(E2, m2pseed);
+  analogWrite(E2, m2speed);
 }
 inline void M2STOP(){
   digitalWrite(M2, LOW);
