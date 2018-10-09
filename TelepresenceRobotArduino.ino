@@ -12,18 +12,26 @@ enum CONTROL_STATE {
   READY, BUSY 
 };
 /*
- * 0bxx01 - 1 - RIGHT FWD
- * 0bxx10 - 2 - RIGHT BACK
- * 0bxx00 - 3 - RIGHT STOP
- * 0b01xx - 4 - LEFT FWD
- * 0b10xx - 5 - LEFT BACK
- * 0b00xx - 6 - LEFT STOP
+ * 0b0000 - 0 - BOTH MOTORS STOP
+ * 0b0001 - 1 - LEFT STOP + RIGHT FWD
+ * 0b0010 - 2 - LEFT STOP + RIGHT BACK
+ * 0b0011 - 3 - LEFT FWD + RIGHT STOP
+ * 0b0100 - 4 - LEFT BACK + RIGHT STOP
+ * 0b0101 - 5 - LEFT FWD + RIGHT FWD
+ * 0b0110 - 6 - LEFT FWD + RIGHT BACK
+ * 0b0111 - 7 - LEFT BACK + RIGHT FWD
+ * 0b1000 - 8 - LEFT BACK + RIGHT BACK
  */
 
-#define B_RIGHT_FWD   0b01
-#define B_RIGHT_BACK  0b10
-#define B_LEFT_FWD  0b1000
-#define B_LEFT_BACK 0b0100
+#define B_BOTH_STOP     0b0000
+#define B_RIGHT_FWD     0b0001
+#define B_RIGHT_BACK    0b0010
+#define B_LEFT_FWD      0b0011
+#define B_LEFT_BACK     0b0100
+#define B_LR_FWD        0b0101
+#define B_L_FWD_R_BACK  0b0110
+#define B_L_BACK_R_FWD  0b0111
+#define B_LR_BACK       0b1000
 
 enum MOTOR_CODES {
   LEFT_FWD,
@@ -78,47 +86,86 @@ void receiveData(int byteCount){
     Serial.println(number);
 
     // ready to take motor controls
-    if(number & B_LEFT_FWD == B_LEFT_FWD){
+    if(number == B_BOTH_STOP){
       if(control_state == READY){
-        left_motor_state = LEFT_FWD;  
+        left_motor_state = LEFT_STOP;
+        right_motor_state = RIGHT_STOP;  
       } else {
         last_left_state = LEFT_FWD;
-      }
-    }
-    if(number & B_LEFT_BACK == B_LEFT_BACK){
-      if(control_state == READY){
-        left_motor_state = LEFT_BACK;  
-      } else {
-        last_left_state = LEFT_BACK;
-      }
-    }
-    if((((number >> 2) & 3) | 0) == 0){
-      if(control_state == READY){
-        left_motor_state = LEFT_STOP;  
-      } else {
-        last_left_state = LEFT_STOP;
-      }
-    }
-    if(number & B_RIGHT_FWD == B_RIGHT_FWD){
-      if(control_state == READY){
-        right_motor_state = RIGHT_FWD;  
-      } else {
         last_right_state = RIGHT_FWD;
       }
     }
-    if(number & B_RIGHT_BACK == B_RIGHT_BACK){
+    if(number == B_RIGHT_FWD){
       if(control_state == READY){
+        left_motor_state = LEFT_STOP;
+        right_motor_state = RIGHT_FWD;  
+      } else {
+        last_left_state = LEFT_STOP;
+        last_right_state = RIGHT_FWD;
+      }
+    }
+    if(number == B_RIGHT_BACK){
+      if(control_state == READY){
+        left_motor_state = LEFT_STOP;
         right_motor_state = RIGHT_BACK;  
       } else {
+        last_left_state = LEFT_STOP;
         last_right_state = RIGHT_BACK;
+      }
+    }
+    if(number == B_LEFT_FWD){
+      if(control_state == READY){
+        left_motor_state = LEFT_FWD;
+        right_motor_state = RIGHT_STOP;  
+      } else {
+        last_left_state = LEFT_FWD;
+        last_right_state = RIGHT_STOP;
+      }
+    }
+    if(number == B_LEFT_BACK){
+      if(control_state == READY){
+        left_motor_state = LEFT_BACK;
+        right_motor_state = RIGHT_STOP;  
+      } else {
+        last_left_state = LEFT_BACK;
+        last_right_state = RIGHT_STOP;
       }
       
     }
-    if((number & 3 ) | 0 == 0){
+    if(number == B_LR_FWD){
       if(control_state == READY){
-        right_motor_state = RIGHT_STOP;  
+        right_motor_state = RIGHT_FWD;
+        left_motor_state = LEFT_FWD;
       } else {
-        last_right_state = RIGHT_STOP;
+        last_right_state = RIGHT_FWD;
+        last_left_state = LEFT_FWD;
+      }
+    }
+    if(number == B_L_FWD_R_BACK){
+      if(control_state == READY){
+        left_motor_state = LEFT_FWD;
+        right_motor_state = RIGHT_BACK;      
+      } else {
+        last_left_state = LEFT_FWD;
+        last_right_state = RIGHT_BACK;
+      }
+    }
+    if(number == B_L_BACK_R_FWD){
+      if(control_state == READY){
+        left_motor_state = LEFT_BACK;
+        right_motor_state = RIGHT_FWD;
+      } else{
+        last_left_state = LEFT_BACK;
+        last_right_state = RIGHT_FWD;
+      }
+    }
+    if(number == B_LR_BACK){
+      if(control_state == READY){
+        left_motor_state = LEFT_BACK;
+        right_motor_state = RIGHT_BACK;
+      } else {
+        last_left_state = LEFT_BACK;
+        last_right_state = RIGHT_BACK;
       }
     }
         
