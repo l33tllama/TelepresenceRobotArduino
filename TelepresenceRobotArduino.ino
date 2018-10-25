@@ -23,15 +23,15 @@ enum CONTROL_STATE {
  * 0b1000 - 8 - LEFT BACK + RIGHT BACK
  */
 
-#define B_BOTH_STOP     0b0000
-#define B_RIGHT_FWD     0b0001
-#define B_RIGHT_BACK    0b0010
-#define B_LEFT_FWD      0b0011
-#define B_LEFT_BACK     0b0100
-#define B_LR_FWD        0b0101
-#define B_L_FWD_R_BACK  0b0110
-#define B_L_BACK_R_FWD  0b0111
-#define B_LR_BACK       0b1000
+#define B_BOTH_STOP     0b0000 // 0
+#define B_RIGHT_FWD     0b0001 // 1
+#define B_RIGHT_BACK    0b0010 // 2
+#define B_LEFT_FWD      0b0011 // 3
+#define B_LEFT_BACK     0b0100 // 4
+#define B_LR_FWD        0b0101 // 5
+#define B_L_FWD_R_BACK  0b0110 // 6
+#define B_L_BACK_R_FWD  0b0111 // 7
+#define B_LR_BACK       0b1000 // 8
 
 enum MOTOR_CODES {
   LEFT_FWD,
